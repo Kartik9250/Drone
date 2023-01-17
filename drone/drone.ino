@@ -10,6 +10,10 @@ int servoPin2 = 12;
 int servoPin3 = 10;
 int servoPin4 = 11;
 
+int kp = 0.8
+int ki = 0.5
+int kd = 0.3
+
 Servo servo1;
 Servo servo2;
 Servo servo3;
@@ -41,7 +45,7 @@ void setup() {
   Wire.begin();
 
   // Initialize MPU6050
-  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_8G))
+  while(!mpu.begin(MPU6050_SCALE_500DPS, MPU6050_RANGE_8G))
   {
     Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
     delay(500);
@@ -70,6 +74,8 @@ void read_mpu() {
     // Wait to full timeStep period
     delay((timeStep*1000) - (millis() - timer));
    }
+   if(pitch != 0 or roll != 0)
+   pid_controller()
 }
 
 void pid_controller() {
@@ -77,6 +83,43 @@ void pid_controller() {
     float pitch_pid    = 0;
     float roll_pid     = 0;
     int   throttle     = pulse_length[mode_mapping[THROTTLE]];
+
+    if (pitch >= 0) {
+      pid_temp_error = pitch;
+      pitch_prop = pitch_temp_error;
+      pitch_inte = pitch_inte + pitch_temp_error*ki;
+      pitch_deri = (pitch_temp_error - pitch_previous_error);
+      throttle = kp*pitch_prop + pitch_inte + kd*pitch_deri;
+      pitch_previous_error = pitch_temp_error;
+      servo1.writeMicroseconds(throttle);
+    }
+    else if (pitch <= 0) {
+      pid_temp_error = -pitch;
+      pitch_prop = pitch_temp_error;
+      pitch_inte = pitch_inte + pitch_temp_error;
+      pitch_deri = (pitch_temp_error - pitch_previous_error);
+      throttle = kp*pitch_prop + ki*pitch_inte + kd*pitch_deri;
+      pitch_previous_error = pitch_temp_error;
+      servo2.writeMicroseconds(throttle);
+    }
+    else if (roll >= 0) {
+      pid_temp_error = -roll;
+      roll_prop = roll_temp_error;
+      roll_inte = roll_inte + roll_temp_error;
+      roll_deri = (roll_temp_error - roll_previous_error);
+      throttle = kp*roll_prop + ki*roll_inte + kd*roll_deri;
+      roll_previous_error = roll_temp_error;
+      servo3.writeMicroseconds(throttle);
+    }
+    else if (roll <= 0) {
+      pid_temp_error = -roll;
+      roll_prop = roll_temp_error;
+      roll_inte = roll_inte + roll_temp_error;
+      roll_deri = (roll_temp_error - roll_previous_error);
+      throttle = kp*roll_prop + ki*roll_inte + kd*roll_deri;
+      roll_previous_error = roll_temp_error;
+      servo4.writeMicroseconds(throttle);
+    }
 }
 
 void loop() {
@@ -90,4 +133,5 @@ servo2.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary t
 servo3.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary to arm the ESC.
 servo4.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary to arm the ESC.
 
+read_mpu()
 }
