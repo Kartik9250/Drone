@@ -10,9 +10,11 @@ int servoPin2 = 12;
 int servoPin3 = 10;
 int servoPin4 = 11;
 
-int kp = 0.8
-int ki = 0.5
-int kd = 0.3
+int potVal = 0;
+
+int kp = 0.8;
+int ki = 0.5;
+int kd = 0.3;
 
 Servo servo1;
 Servo servo2;
@@ -35,6 +37,8 @@ void setup() {
   servo2.attach(servoPin2);
   servo3.attach(servoPin3);
   servo4.attach(servoPin4);
+
+  potVal = 1100;
   
   servo1.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
   servo2.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
@@ -124,7 +128,7 @@ void pid_controller() {
 
 void loop() {
 
-int potVal = analogRead(potentiometerPin); // read input from potentiometer.
+//int potVal = analogRead(potentiometerPin); // read input from potentiometer.
 
 int pwmVal = map(potVal,0, 1023, 1100, 2000); // maps potentiometer values to PWM value.
 Serial.println(pwmVal);
@@ -133,5 +137,9 @@ servo2.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary t
 servo3.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary to arm the ESC.
 servo4.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary to arm the ESC.
 
+// taking the values of pitch, yaw and roll form the help of MPU6050 gyro sensor
 read_mpu()
+
+delay(5000); 
+potVal = 0
 }
