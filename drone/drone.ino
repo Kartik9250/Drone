@@ -1,11 +1,8 @@
 #include <Servo.h>
 #include "Wire.h"
-#include <MPU6050_light.h>
+#include <MPU6050.h>
 
-
-MPU6050 mpu(Wire);
-
-long timer = 0;
+MPU6050 mpu;
 
 #define potentiometerPin A0
 int servoPin1 = 6; // signal pin for the ESC.
@@ -18,33 +15,69 @@ Servo servo2;
 Servo servo3;
 Servo servo4;
 
+// Timers
+unsigned long timer = 0;
+float timeStep = 0.01;
+
+// Pitch, Roll and Yaw values
+float pitch = 0;
+float roll = 0;
+float yaw = 0;
+
 void setup() {
-Serial.begin(9600);
-servo1.attach(servoPin1);
-servo2.attach(servoPin2);
-servo3.attach(servoPin3);
-servo4.attach(servoPin4);
-servo1.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
-servo2.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
-servo3.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
-servo4.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
+  Serial.begin(9600);
+  
+  servo1.attach(servoPin1);
+  servo2.attach(servoPin2);
+  servo3.attach(servoPin3);
+  servo4.attach(servoPin4);
+  
+  servo1.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
+  servo2.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
+  servo3.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
+  servo4.writeMicroseconds(1500); // send "stop" signal to ESC. Also necessary to arm the ESC.
+  
+  delay(5000); // delay to allow the ESC to recognize the stopped signal.
+  Wire.begin();
 
-delay(5000); // delay to allow the ESC to recognize the stopped signal.
-Wire.begin();
+  // Initialize MPU6050
+  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_8G))
+  {
+    Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
+    delay(500);
+  }
 
-//mpu setup
-byte status = mpu.begin();
-Serial.print(F("MPU6050 status: "));
-Serial.println(status);
-while(status!=0){ } // stop everything if could not connect to MPU6050
-
-Serial.println(F("Calculating offsets, do not move MPU6050"));
-delay(1000);
-mpu.calcOffsets(true,true); // gyro and accelero
-Serial.println("Done!\n");
+  // Calibrate gyroscope. The calibration must be at rest.
+  mpu.calibrateGyro();
 
 }
 
+void read_mpu() {
+
+    // Read normalized values
+    Vector norm = mpu.readNormalizeGyro();
+  
+    // Calculate Pitch, Roll and Yaw
+    pitch = pitch + norm.YAxis * timeStep;
+    roll = roll + norm.XAxis * timeStep;
+    yaw = yaw + norm.ZAxis * timeStep;
+  
+    // Output raw
+    Serial.print(" Pitch = ");Serial.print(pitch);
+    Serial.print(" Roll = ");Serial.print(roll);
+    Serial.print(" Yaw = ");Serial.println(yaw);
+
+    // Wait to full timeStep period
+    delay((timeStep*1000) - (millis() - timer));
+   }
+}
+
+void pid_controller() {
+    float yaw_pid      = 0;
+    float pitch_pid    = 0;
+    float roll_pid     = 0;
+    int   throttle     = pulse_length[mode_mapping[THROTTLE]];
+}
 
 void loop() {
 
@@ -56,28 +89,5 @@ servo1.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary t
 servo2.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary to arm the ESC.
 servo3.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary to arm the ESC.
 servo4.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary to arm the ESC.
-
-//mpu output
-mpu.update();
-
-if(millis() - timer > 1000){ // print data every second
-  Serial.print(F("TEMPERATURE: "));Serial.println(mpu.getTemp());
-  Serial.print(F("ACCELERO  X: "));Serial.print(mpu.getAccX());
-  Serial.print("\tY: ");Serial.print(mpu.getAccY());
-  Serial.print("\tZ: ");Serial.println(mpu.getAccZ());
-
-  Serial.print(F("GYRO      X: "));Serial.print(mpu.getGyroX());
-  Serial.print("\tY: ");Serial.print(mpu.getGyroY());
-  Serial.print("\tZ: ");Serial.println(mpu.getGyroZ());
-
-  Serial.print(F("ACC ANGLE X: "));Serial.print(mpu.getAccAngleX());
-  Serial.print("\tY: ");Serial.println(mpu.getAccAngleY());
-  
-  Serial.print(F("ANGLE     X: "));Serial.print(mpu.getAngleX());
-  Serial.print("\tY: ");Serial.print(mpu.getAngleY());
-  Serial.print("\tZ: ");Serial.println(mpu.getAngleZ());
-  Serial.println(F("=====================================================\n"));
-  timer = millis();
-}
 
 }
