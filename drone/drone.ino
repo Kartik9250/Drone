@@ -11,7 +11,7 @@ int servoPin3 = 10;
 int servoPin4 = 11;
 
 int potVal = 0;
-
+char Incoming_value = 0;
 // PID constants
 int kp = 1.3;
 int ki = 0.05;
@@ -24,7 +24,7 @@ Servo servo3;
 Servo servo4;
 
 // Defining throttle
-throttle = 0;
+int throttle = 0;
 
 // Timers
 unsigned long timer = 0;
@@ -69,7 +69,44 @@ void setup() {
 
 }
 
-void read_mpu() {
+void print_val()
+{
+    Serial.print("In val = "); 
+    Serial.print(Incoming_value);
+    Serial.print("|");
+    //Serial.print("Motor speed = "); 
+    Serial.print(throttle);
+     Serial.print("%"); 
+    Serial.print("|");
+   // Serial.print("left val = ");
+     Serial.print(" cm");
+    Serial.print("|");
+    //Serial.print("right val = ");
+    Serial.print(" cm");
+     Serial.print("|");
+    //Serial.print("distance = ");
+    Serial.print(" cm");
+    Serial.print("|");
+    Serial.print(" cm");
+     Serial.print("|");
+    Serial.print(" cm/h");
+    Serial.println(" ");
+}
+
+void ble(){
+  if(Serial.available() > 0) {
+    Incoming_value = Serial.read();
+    if(Incoming_value == '4')             
+      increase_throttle();
+        
+        
+    else if(Incoming_value == '5')       
+      decrease_throttle(); 
+  }
+  print_val();
+  drone_power();
+  }
+/*void read_mpu() {
 
     // Read normalized values
     Vector norm = mpu.readNormalizeGyro();
@@ -88,14 +125,14 @@ void read_mpu() {
     delay((timeStep*1000) - (millis() - timer));
    
    if(pitch != 0 or roll != 0)
-   pid_controller()
+   //pid_controller();
 }
 
 void pid_controller() {
     float yaw_pid      = 0;
     float pitch_pid    = 0;
     float roll_pid     = 0;
-    int   throttle     = pulse_length[mode_mapping[THROTTLE]];
+    //int throttle = pulse_length[mode_mapping[THROTTLE]];
 
     if (pitch >= 0) {
       pid_temp_error = pitch;
@@ -133,9 +170,9 @@ void pid_controller() {
       roll_previous_error = roll_temp_error;
       servo4.writeMicroseconds(throttle);
     }
-}
+}*/
 
-void drone_power(throtle) {
+void drone_power() {
   Serial.println(throttle);
   servo1.writeMicroseconds(throttle); // send "stop" signal to ESC. Also necessary to arm the ESC.
   servo2.writeMicroseconds(throttle); // send "stop" signal to ESC. Also necessary to arm the ESC.
@@ -145,16 +182,16 @@ void drone_power(throtle) {
 
 void increase_throttle() {
   if (throttle <= 1500) {
-    throttle += 100
+    throttle += 100;
   }
-  drone_power(throttle)
+  drone_power();
 }
 
 void decrease_throttle() {
   if(throttle >= 0) {
-    throttle -= 100
+    throttle -= 100;
   }
-  drone_power(throttle)
+  drone_power();
 }
 
 void loop() {
@@ -169,8 +206,8 @@ void loop() {
 // servo4.writeMicroseconds(pwmVal); // send "stop" signal to ESC. Also necessary to arm the ESC.
 
 // taking the values of pitch, yaw and roll form the help of MPU6050 gyro sensor
-read_mpu()
+//read_mpu()
 
-delay(5000); 
+ble(); 
 // potVal = 0
 }
