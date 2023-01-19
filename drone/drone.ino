@@ -26,6 +26,7 @@ Servo servo4;
 
 // Defining throttle
 float throttle = 0;
+float throttle_diff = 0;
 
 // Timers
 unsigned long timer = 0;
@@ -134,44 +135,44 @@ void pid_controller() {
     float roll_pid     = 0;
 
     if (pitch >= pitch_offset) {
-      pid_temp_error = pitch;
+      pid_temp_error = pitch - pitch_offset;
       pitch_prop = pitch_temp_error;
       pitch_inte = pitch_inte + pitch_temp_error*ki;
       pitch_deri = (pitch_temp_error - pitch_previous_error);
-      throttle = kp*pitch_prop + pitch_inte + kd*pitch_deri;
+      throttle_diff = kp*pitch_prop + pitch_inte + kd*pitch_deri;
       pitch_previous_error = pitch_temp_error;
-      servo1.writeMicroseconds(throttle);
-      servo4.writeMicroseconds(throttle);
+      servo1.writeMicroseconds(throttle + throttle_diff);
+      servo4.writeMicroseconds(throttle + throttle_diff);
     }
     else if (pitch <= pitch_offset) {
-      pid_temp_error = -pitch;
+      pid_temp_error = -(pitch - pitch_offset);
       pitch_prop = pitch_temp_error;
       pitch_inte = pitch_inte + pitch_temp_error;
       pitch_deri = (pitch_temp_error - pitch_previous_error);
-      throttle = kp*pitch_prop + ki*pitch_inte + kd*pitch_deri;
+      throttle_diff = kp*pitch_prop + ki*pitch_inte + kd*pitch_deri;
       pitch_previous_error = pitch_temp_error;
-      servo2.writeMicroseconds(throttle);
-      servo3.writeMicroseconds(throttle);
+      servo2.writeMicroseconds(throttle + throttle_diff);
+      servo3.writeMicroseconds(throttle + throttle_diff);
     }
     else if (roll >= roll_offet) {
-      pid_temp_error = -roll;
+      pid_temp_error = roll - roll_offet;
       roll_prop = roll_temp_error;
       roll_inte = roll_inte + roll_temp_error;
       roll_deri = (roll_temp_error - roll_previous_error);
-      throttle = kp*roll_prop + ki*roll_inte + kd*roll_deri;
+      throttle_diff = kp*roll_prop + ki*roll_inte + kd*roll_deri;
       roll_previous_error = roll_temp_error;
-      servo3.writeMicroseconds(throttle);
-      servo4.writeMicroseconds(throttle);
+      servo3.writeMicroseconds(throttle + throttle_diff);
+      servo4.writeMicroseconds(throttle + throttle_diff);
     }
     else if (roll <= roll_offet) {
-      pid_temp_error = -roll;
+      pid_temp_error = -(roll - roll_offet);
       roll_prop = roll_temp_error;
       roll_inte = roll_inte + roll_temp_error;
       roll_deri = (roll_temp_error - roll_previous_error);
-      throttle = kp*roll_prop + ki*roll_inte + kd*roll_deri;
+      throttle_diff = kp*roll_prop + ki*roll_inte + kd*roll_deri;
       roll_previous_error = roll_temp_error;
-      servo1.writeMicroseconds(throttle);
-      servo2.writeMicroseconds(throttle);
+      servo1.writeMicroseconds(throttle + throttle_diff);
+      servo2.writeMicroseconds(throttle + throttle_diff);
     }
 }
 
