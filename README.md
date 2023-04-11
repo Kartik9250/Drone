@@ -2,6 +2,7 @@
 An arduino based drone capable of stable flight.
 
 ## Requirements
+
 	- Arduino
 	- IMU: MPU6050
 	- ESCs
@@ -13,7 +14,11 @@ An arduino based drone capable of stable flight.
 ## Installing Arduino IDE
 Arduino ide could easily be installed by following [This link](https://www.arduino.cc/en/software)
 
-## To Do:
+## Usage
+Clone the repository inside your arduino folder and upload the required code to the arduino
+
+## To Do
+
 	- [x] arduino esc test
 	- [x] arduino esc control
 	- [x] pid test
