@@ -31,7 +31,7 @@ float Total_angle_x, Total_angle_y;
 
 //More variables for the code
 int i;
-int input_THROTTLE=1065;
+int input_THROTTLE=1035;
 
 //////////////////////////////PID FOR ROLL///////////////////////////
 float roll_PID, pwm_L_F, pwm_L_B, pwm_R_F, pwm_R_B, roll_error, roll_previous_error;
@@ -41,7 +41,7 @@ float roll_pid_d=0;
 ///////////////////////////////ROLL PID CONSTANTS////////////////////
 double roll_kp=2;//3.55
 double roll_ki=0;//0.003
-double roll_kd=2;//2.05
+double roll_kd=1.75;//2.05
 float roll_desired_angle = 0;     //This is the angle in which we whant the
 
 //////////////////////////////PID FOR PITCH//////////////////////////
@@ -52,12 +52,14 @@ float pitch_pid_d=0;
 ///////////////////////////////PITCH PID CONSTANTS///////////////////
 double pitch_kp=2;//3.55
 double pitch_ki=0;//0.003
-double pitch_kd=2;//2.05
+double pitch_kd=1.75;//2.05
 float pitch_desired_angle = 0;     //This is the angle in which we whant the
 
                               
 
 void setup() {
+  Serial.begin(9600);
+  Serial.println("script started");
   L_F_prop.attach(11); //left front motor
   L_B_prop.attach(6); //left back motor
   R_F_prop.attach(12); //right front motor 
@@ -71,12 +73,14 @@ void setup() {
   
   
   Wire.begin();                           //begin the wire comunication
+  
   Wire.beginTransmission(0x68);           //begin, Send the slave adress (in this case 68)              
   Wire.write(0x6B);                       //make the reset (place a 0 into the 6B register)
   Wire.write(0x00);
   Wire.endTransmission(true);             //end the transmission
   
   Wire.beginTransmission(0x68);           //begin, Send the slave adress (in this case 68) 
+  Serial.println("gyro 1");
   Wire.write(0x1B);                       //We want to write to the GYRO_CONFIG register (1B hex)
   Wire.write(0x10);                       //Set the register bits as 00010000 (100dps full scale)
   Wire.endTransmission(true);             //End the transmission with the gyro
@@ -86,11 +90,8 @@ void setup() {
   Wire.write(0x10);                       //Set the register bits as 00010000 (+/- 8g full scale range)
   Wire.endTransmission(true);  
   
-  Serial.begin(9600);
   delay(1000);
   time = millis();                         //Start counting time in milliseconds
-
-
 /*Here we calculate the gyro data error before we start the loop
  * Mean of 200 values*/
   if(gyro_error==0)
@@ -349,24 +350,30 @@ pitch_previous_error = pitch_error; //Remember to store the previous error.
 
  Serial.print("RF: ");
  Serial.print(pwm_R_F);
- Serial.print("   |   ");
+ Serial.print("  ");
  Serial.print("RB: ");
  Serial.print(pwm_R_B);
- Serial.print("   |   ");
+ Serial.print("  ");
  Serial.print("LB: ");
  Serial.print(pwm_L_B);
- Serial.print("   |   ");
- Serial.print("LF: ");
+ Serial.print(" ");
+ Serial.print("L_F: ");
  Serial.print(pwm_L_F);
-
- Serial.print("   |   ");
- Serial.print("Xº: ");
- Serial.print(Total_angle_x);
- Serial.print("   |   ");
- Serial.print("Yº: ");
- Serial.print(Total_angle_y);
  Serial.println(" ");
 
+ /*Serial.print(roll_pid_p);
+ Serial.print(" ");
+ Serial.print(roll_pid_i);
+ Serial.print(" ");
+ Serial.print(roll_pid_d);
+ Serial.print(" ");
+ 
+ Serial.print(pitch_pid_p);
+ Serial.print(" ");
+ Serial.print(pitch_pid_i);
+ Serial.print(" ");
+ Serial.print(pitch_pid_d);
+ Serial.println(" ");*/
 /*now we can write the values PWM to the ESCs only if the motor is activated
 */
 
